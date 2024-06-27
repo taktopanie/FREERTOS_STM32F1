@@ -7,9 +7,6 @@
     </language>
     <language id="org.eclipse.cdt.core.gcc" name="C Source File">
       <includepath>Core/Inc</includepath>
-      <includepath>Drivers/STM32F3xx_HAL_Driver/Inc/Legacy</includepath>
-      <includepath>Drivers/STM32F3xx_HAL_Driver/Inc</includepath>
-      <includepath>Drivers/CMSIS/Device/ST/STM32F3xx/Include</includepath>
       <includepath>Drivers/CMSIS/Include</includepath>
       <includepath>Drivers/STM32F1xx_HAL_Driver/Inc/Legacy</includepath>
       <includepath>Drivers/STM32F1xx_HAL_Driver/Inc</includepath>
