@@ -83,6 +83,22 @@ void lcd_init(void){
 	HAL_Delay(100);
 }
 
+
+/*
+ * IN USE ONLY IF POWER OF THE LCD IS CONTROLLED BY GPIO
+ *
+ * function lcd_state_reset
+ *
+ * description: this function may be used to restart the LCD (clears the memory)
+ *
+ */
+void lcd_state_reset(void)
+{
+	HAL_GPIO_WritePin(LCD_STATE_PORT, LCD_STATE_PIN, DISABLE);
+	HAL_Delay(100);
+	HAL_GPIO_WritePin(LCD_STATE_PORT, LCD_STATE_PIN, ENABLE);
+}
+
 void _save_state(uint8_t * saved_state){
 	// SAVE PREVIOUS STATE //
 	if(HAL_GPIO_ReadPin(LCD_RS_PORT, LCD_RS_PIN)){
@@ -281,7 +297,7 @@ void lcd_add_specials(void){
 	}
 }
 
-//TODO
+
 void _LCD_PIN_SET_OUTPUT(GPIO_TypeDef * LCD_DATA_PORT, uint16_t LCD_DATA_PIN )
 {
 
@@ -298,7 +314,6 @@ void _LCD_PIN_SET_OUTPUT(GPIO_TypeDef * LCD_DATA_PORT, uint16_t LCD_DATA_PIN )
 
 		//CHANGE MODE TO OUTPUT PUSH_PULL(CNF)
 		LCD_DATA_PORT->CRL &= ~(3 << ( (tmp_pin*2) + 2));
-		//LCD_DATA_PORT->CRL |= (1 << ( (LCD_DATA_PIN*2) + 1));
 
 	}else
 	{

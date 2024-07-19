@@ -30,6 +30,8 @@ void LCD_PRINT_task(void* vParameters)
 	uint16_t ADC_2_saved = 9999;
 	int j;
 
+	lcd_state_reset();
+
 	lcd_clear();
 
 	while(1)

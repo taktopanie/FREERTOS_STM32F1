@@ -20,6 +20,9 @@
  *
  */
 
+#define LCD_STATE_PIN				GPIO_PIN_14
+#define LCD_STATE_PORT				GPIOC
+
 
 #define LCD_DATA_4_PIN				GPIO_PIN_3
 #define LCD_DATA_5_PIN				GPIO_PIN_4
@@ -99,6 +102,8 @@ void Reset_E (void);
 
 
 void lcd_init(void);
+
+void lcd_state_reset(void);
 
 void lcd_clear(void);
 
