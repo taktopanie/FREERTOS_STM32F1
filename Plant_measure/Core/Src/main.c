@@ -44,9 +44,20 @@ ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
 /* USER CODE BEGIN PV */
-uint16_t volatile ADC_VALUE[2];
+//TASKS HANDLERS
 TaskHandle_t GROUND_MEASURE_hndl;
 TaskHandle_t LCD_PRINT_hndl;
+TaskHandle_t WATERING_hndl;
+
+//TIMERS
+xTimerHandle PUMP_TIMER[NUMBER_OF_SENSORS];
+
+//SEMAPHORES
+SemaphoreHandle_t PUMP_SEMAPHORE[NUMBER_OF_SENSORS];
+
+//USED VARIABLES
+uint16_t volatile ADC_VALUE[NUMBER_OF_SENSORS];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -57,6 +68,7 @@ static void MX_ADC1_Init(void);
 /* USER CODE BEGIN PFP */
 void GROUND_MEASURE_task(void* vParameters);
 void LCD_PRINT_task(void* vParameters);
+void WATERING_task(void* vParameters);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -98,11 +110,29 @@ int main(void)
 
   lcd_init();
 
+  //TASKS
   Status = xTaskCreate(GROUND_MEASURE_task, "GROUND_MEASURE TASK", 100, 0, 1, &GROUND_MEASURE_hndl);
   configASSERT(Status == pdPASS);
 
   Status = xTaskCreate(LCD_PRINT_task, "LCD_PRINT TASK", 100, 0, 1, &LCD_PRINT_hndl);
   configASSERT(Status == pdPASS);
+
+  Status = xTaskCreate(WATERING_task, "WATERING TASK", 100, 0, 1, &WATERING_hndl);
+  configASSERT(Status == pdPASS);
+
+  //TIMERS TODO: initialize in for loop
+  PUMP_TIMER[0] = xTimerCreate("PUMP_0_TIM", pdMS_TO_TICKS(1000*60*60*3), pdFALSE, ( void * ) 0, TIMER_PUMP_EXPIRED);
+  PUMP_TIMER[1] = xTimerCreate("PUMP_1_TIM", pdMS_TO_TICKS(1000*60*60*3), pdFALSE, ( void * ) 0, TIMER_PUMP_EXPIRED);
+
+  //SEMAPHORES
+  PUMP_SEMAPHORE[0] = xSemaphoreCreateBinary();
+  configASSERT(PUMP_SEMAPHORE[0] != NULL);
+
+  PUMP_SEMAPHORE[1] = xSemaphoreCreateBinary();
+  configASSERT(PUMP_SEMAPHORE[1] != NULL);
+
+  xSemaphoreGive(PUMP_SEMAPHORE[0]);
+  xSemaphoreGive(PUMP_SEMAPHORE[1]);
 
   vTaskStartScheduler();
   /* USER CODE END 2 */
@@ -254,8 +284,11 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13|GPIO_PIN_14, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3
-                          |GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LCD_RS_Pin|LCD_RW_Pin|LCD_E_Pin|LCD_DATA_4_Pin
+                          |LCD_DATA_5_Pin|LCD_DATA_6_Pin|LCD_DATA_7_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, PUMP_0_Pin|PUMP_1_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : PC13 PC14 */
   GPIO_InitStruct.Pin = GPIO_PIN_13|GPIO_PIN_14;
@@ -264,14 +297,21 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PA0 PA1 PA2 PA3
-                           PA4 PA5 PA6 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3
-                          |GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6;
+  /*Configure GPIO pins : LCD_RS_Pin LCD_RW_Pin LCD_E_Pin LCD_DATA_4_Pin
+                           LCD_DATA_5_Pin LCD_DATA_6_Pin LCD_DATA_7_Pin */
+  GPIO_InitStruct.Pin = LCD_RS_Pin|LCD_RW_Pin|LCD_E_Pin|LCD_DATA_4_Pin
+                          |LCD_DATA_5_Pin|LCD_DATA_6_Pin|LCD_DATA_7_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PUMP_0_Pin PUMP_1_Pin */
+  GPIO_InitStruct.Pin = PUMP_0_Pin|PUMP_1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
@@ -281,7 +321,9 @@ static void MX_GPIO_Init(void)
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
 
+	//TOGGLING LED TO INFORM USER
 	HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+	//PASSING THE ADDRESS
 	xTaskNotifyFromISR(LCD_PRINT_hndl, (uint32_t)ADC_VALUE, eSetValueWithOverwrite, NULL);
 
 }

@@ -33,7 +33,11 @@ extern "C" {
 /* USER CODE BEGIN Includes */
 #include "FreeRTOS.h"
 #include "task.h"
+#include "timers.h"
+#include "semphr.h"
 #include "HD44780.h"
+#include "myTasks.h"
+#include "stdlib.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -43,7 +47,7 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-
+#define NUMBER_OF_SENSORS 2			//<< CUSTOMIZE THIS VARIABLE TO YOUR PROJECT
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
@@ -59,6 +63,24 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define LCD_RS_Pin GPIO_PIN_0
+#define LCD_RS_GPIO_Port GPIOA
+#define LCD_RW_Pin GPIO_PIN_1
+#define LCD_RW_GPIO_Port GPIOA
+#define LCD_E_Pin GPIO_PIN_2
+#define LCD_E_GPIO_Port GPIOA
+#define LCD_DATA_4_Pin GPIO_PIN_3
+#define LCD_DATA_4_GPIO_Port GPIOA
+#define LCD_DATA_5_Pin GPIO_PIN_4
+#define LCD_DATA_5_GPIO_Port GPIOA
+#define LCD_DATA_6_Pin GPIO_PIN_5
+#define LCD_DATA_6_GPIO_Port GPIOA
+#define LCD_DATA_7_Pin GPIO_PIN_6
+#define LCD_DATA_7_GPIO_Port GPIOA
+#define PUMP_0_Pin GPIO_PIN_5
+#define PUMP_0_GPIO_Port GPIOB
+#define PUMP_1_Pin GPIO_PIN_6
+#define PUMP_1_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
