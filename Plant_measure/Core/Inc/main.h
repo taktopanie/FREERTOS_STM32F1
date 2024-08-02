@@ -48,6 +48,7 @@ extern "C" {
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
 #define NUMBER_OF_SENSORS 2			//<< CUSTOMIZE THIS VARIABLE TO YOUR PROJECT
+#define MAX_MEAS_NUMBER 16			//<< CUSTOMIZE THIS VARIABLE TO YOUR PROJECT
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
@@ -81,6 +82,8 @@ void Error_Handler(void);
 #define PUMP_0_GPIO_Port GPIOB
 #define PUMP_1_Pin GPIO_PIN_6
 #define PUMP_1_GPIO_Port GPIOB
+#define PUMP_2_Pin GPIO_PIN_7
+#define PUMP_2_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

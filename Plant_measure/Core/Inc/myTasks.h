@@ -10,7 +10,7 @@
 
 #include "main.h"
 
-#define MAX_MEAS_NUMBER 16
+
 
 void TIMER_PUMP_EXPIRED(TimerHandle_t xTimer);
 
