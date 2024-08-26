@@ -1,0 +1,6 @@
+.*
+*Debug*
+*Startup*
+*.ld
+*/Drivers/*
+*.launch
