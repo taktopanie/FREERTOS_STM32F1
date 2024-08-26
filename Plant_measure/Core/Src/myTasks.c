@@ -54,11 +54,15 @@ void GROUND_MEASURE_CALCULATE_task(void* vParameters)
 		xTaskNotify(LCD_PRINT_hndl, (uint32_t)measure_addr, eSetValueWithOverwrite);
 
 
-		//TODO:
+		//TODO: SECOND MEASURE
 		//WATERING IF REQUIRED
-		if(ADC_measures[1]>1000)
+		if(ADC_measures[0]>1500)
 		{
 			xTaskNotify(WATERING_hndl,0x1 ,eSetBits);
+		}
+		if(ADC_measures[1]>2300)
+		{
+			xTaskNotify(WATERING_hndl,0x2 ,eSetBits);
 		}
 	}
 }
@@ -119,12 +123,17 @@ void LCD_PRINT_task(void* vParameters)
 
 			lcd_send_command(SET_DDRAM_ADDR|LCD_LINE2);
 
-			lcd_send_text("WATERING: ");
-			if(ADC_actual_measures[1]<1000)
+			lcd_send_text("ADC2: ");
+
+			lcd_send_text(meas_str_value);
+
+			//CLEAR THE REST OF THE RESULT ON LCD
+			uint8_t j = 0;
+			while(meas_str_value[j]!= '\0')j++;
+
+			for(int i = j; i < 4; i++)
 			{
-				lcd_send_text("NO ");
-			}else{
-				lcd_send_text("YES");
+				lcd_send_data(0x20);
 			}
 
 ///////////////////////THE VALUE OF HIGH/LOW PIN ///
@@ -179,7 +188,7 @@ void WATERING_task(void* vParameters)
 
 			for(uint16_t i = 0 ; i < NUMBER_OF_SENSORS; i++)
 			{
-				if(pin_number & i)
+				if(pin_number & (1 << i))
 				{
 					if(xSemaphoreTake(PUMP_SEMAPHORE[i], 0) == pdTRUE)
 					{
