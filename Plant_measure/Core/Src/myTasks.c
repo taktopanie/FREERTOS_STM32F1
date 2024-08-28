@@ -56,11 +56,11 @@ void GROUND_MEASURE_CALCULATE_task(void* vParameters)
 
 		//TODO: SECOND MEASURE
 		//WATERING IF REQUIRED
-		if(ADC_measures[0]>1500)
+		if(ADC_measures[0]>1800)
 		{
 			xTaskNotify(WATERING_hndl,0x1 ,eSetBits);
 		}
-		if(ADC_measures[1]>2300)
+		if(ADC_measures[1]>1800)
 		{
 			xTaskNotify(WATERING_hndl,0x2 ,eSetBits);
 		}
@@ -123,7 +123,7 @@ void LCD_PRINT_task(void* vParameters)
 
 			lcd_send_command(SET_DDRAM_ADDR|LCD_LINE2);
 
-			lcd_send_text("ADC2: ");
+			lcd_send_text("ADC_2: ");
 
 			lcd_send_text(meas_str_value);
 
@@ -194,11 +194,11 @@ void WATERING_task(void* vParameters)
 					{
 
 						//TURN ON THE PUMP
-						HAL_GPIO_WritePin(PUMP_GPIO_PORT_TABLE[i], PUMP_GPIO_PIN_TABLE[i], ENABLE);
+						HAL_GPIO_WritePin(PUMP_GPIO_PORT_TABLE[i], PUMP_GPIO_PIN_TABLE[i], DISABLE);
 						//WATERING TIME
 						vTaskDelay(pdMS_TO_TICKS(5000));
 						//TURN OFF THE PUMP
-						HAL_GPIO_WritePin(PUMP_GPIO_PORT_TABLE[i], PUMP_GPIO_PIN_TABLE[i], DISABLE);
+						HAL_GPIO_WritePin(PUMP_GPIO_PORT_TABLE[i], PUMP_GPIO_PIN_TABLE[i], ENABLE);
 
 						//TIMER STOPS NEXT WATERING FOR 3 HRs
 						xTimerStart(PUMP_TIMER[i], 0);
