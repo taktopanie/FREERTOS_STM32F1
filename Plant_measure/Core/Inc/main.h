@@ -80,6 +80,10 @@ void Error_Handler(void);
 #define LCD_DATA_6_GPIO_Port GPIOA
 #define LCD_DATA_7_Pin GPIO_PIN_6
 #define LCD_DATA_7_GPIO_Port GPIOA
+#define LCD_DC_Pin GPIO_PIN_1
+#define LCD_DC_GPIO_Port GPIOB
+#define LCD_CS_Pin GPIO_PIN_12
+#define LCD_CS_GPIO_Port GPIOB
 #define PUMP_0_Pin GPIO_PIN_5
 #define PUMP_0_GPIO_Port GPIOB
 #define PUMP_1_Pin GPIO_PIN_6

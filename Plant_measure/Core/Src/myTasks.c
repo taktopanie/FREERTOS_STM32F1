@@ -7,6 +7,15 @@
 
 #include "myTasks.h"
 
+//UNCOMMENT BELOW IF ST7735 is used
+#define USE_ST7745
+
+#ifdef USE_ST7745
+	/////////////// ST7735 ADDED ///////////////
+	#include "LCD_MCUDEV.h"
+	#include "ST7735.h"
+	////////////////////////////////////////////
+#endif
 
 //IMPORTED FUNCTIONS
 extern void GROUND_MEASURE_INIT_task(void* vParameters);
@@ -53,8 +62,6 @@ void GROUND_MEASURE_CALCULATE_task(void* vParameters)
 
 		xTaskNotify(LCD_PRINT_hndl, (uint32_t)measure_addr, eSetValueWithOverwrite);
 
-
-		//TODO: SECOND MEASURE
 		//WATERING IF REQUIRED
 		if(ADC_measures[0]>1800)
 		{
@@ -82,6 +89,18 @@ void LCD_PRINT_task(void* vParameters)
 	lcd_state_reset();
 
 	lcd_clear();
+
+#ifdef USE_ST7745
+	/////////////// ST7735 ADDED ///////////////
+	lcd_st7735_init();
+
+	ST7735_FillScreen(ST7735_WHITE);
+	ST7735_DrawString(0, 0, "MEASURE", Font_16x26, ST7735_BLACK, ST7735_YELLOW);
+
+	FontDef _used_font = Font_11x18;
+	uint16_t bg = ST7735_CYAN;
+	////////////////////////////////////////////
+#endif
 
 	while(1)
 	{
@@ -112,6 +131,24 @@ void LCD_PRINT_task(void* vParameters)
 			{
 				lcd_send_data(0x20);
 			}
+#ifdef USE_ST7745
+			/////////////// ST7735 ADDED ///////////////
+			ST7735_DrawString(0, 50, "ADC_1:", _used_font, ST7735_BLACK, bg);
+			ST7735_DrawString(0+_used_font.width*7, 50, meas_str_value, _used_font, ST7735_BLACK, bg);
+
+			//CLEAR THE REST OF THE RESULT ON ST7735
+			if(ADC_actual_measures[0] < 9)
+			{
+				  ST7735_FillRectangle(0+(8 * (_used_font.width)), 50,((_used_font.width) * 3),(_used_font.height),bg);
+			}else if(ADC_actual_measures[0] < 99)
+			{
+				  ST7735_FillRectangle(0+(9 * (_used_font.width)), 50,((_used_font.width) * 2),(_used_font.height),bg);
+			}else if(ADC_actual_measures[0] < 999)
+			{
+				  ST7735_FillRectangle(0+(10 * (_used_font.width)), 50,(_used_font.width),(_used_font.height),bg);
+			}
+			////////////////////////////////////////////
+#endif
 		}
 
 		//SECOND ADC MEASUREMENT
@@ -135,20 +172,24 @@ void LCD_PRINT_task(void* vParameters)
 			{
 				lcd_send_data(0x20);
 			}
+#ifdef USE_ST7745
+			/////////////// ST7735 ADDED ///////////////
+			ST7735_DrawString(0, 50+_used_font.height, "ADC_2:", _used_font, ST7735_BLACK, bg);
+			ST7735_DrawString(0+_used_font.width*7, 50+_used_font.height, meas_str_value, _used_font, ST7735_BLACK, bg);
 
-///////////////////////THE VALUE OF HIGH/LOW PIN ///
-//			lcd_send_text(meas_str_value);
-//
-//			//CLEAR THE REST OF THE RESULT ON LCD
-//			j = 0;
-//			while(meas_str_value[j]!= '\0')j++;
-//
-//			for(int i = j; i < 4; i++)
-//			{
-//				lcd_send_data(0x20);
-//			}
-/////////////////////////////////////////////////////
-
+			//CLEAR THE REST OF THE RESULT ON ST7735
+			if(ADC_actual_measures[1] < 9)
+			{
+				  ST7735_FillRectangle(0+(8 * (_used_font.width)), 50+_used_font.height,((_used_font.width) * 3),(_used_font.height),bg);
+			}else if(ADC_actual_measures[1] < 99)
+			{
+				  ST7735_FillRectangle(0+(9 * (_used_font.width)), 50+_used_font.height,((_used_font.width) * 2),(_used_font.height),bg);
+			}else if(ADC_actual_measures[1] < 999)
+			{
+				  ST7735_FillRectangle(0+(10 * (_used_font.width)), 50+_used_font.height,(_used_font.width),(_used_font.height),bg);
+			}
+			////////////////////////////////////////////
+#endif
 		}
 	}
 
