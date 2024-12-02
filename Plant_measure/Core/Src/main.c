@@ -114,7 +114,9 @@ int main(void)
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
 
+#ifdef USE_LCD_16x2
   lcd_init();
+#endif
 
   //TASKS
   Status = xTaskCreate(GROUND_MEASURE_INIT_task, "GROUND_MEASURE_INIT", 100, 0, 1, &GROUND_MEASURE_INIT_hndl);

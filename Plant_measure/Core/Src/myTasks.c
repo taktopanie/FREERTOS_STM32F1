@@ -7,8 +7,16 @@
 
 #include "myTasks.h"
 
+//////////////////////////////////////
+// CHOSE WHICH LCD WILL BE USED \/
+
 //UNCOMMENT BELOW IF ST7735 is used
 #define USE_ST7745
+
+//UNCOMMENT BELOW IF LCD_16x2 is used
+//#define USE_LCD_16x2
+
+//////////////////////////////////////
 
 #ifdef USE_ST7745
 	/////////////// ST7735 ADDED ///////////////
@@ -83,12 +91,14 @@ void LCD_PRINT_task(void* vParameters)
 
 	char meas_str_value [MAX_MEAS_NUMBER];
 
-	//INIT LCD TODO:CHECK
+#ifdef USE_LCD_16x2
+	// LCD 16x2 INIT
 	lcd_state_reset();
 	lcd_init();
 	lcd_state_reset();
-
 	lcd_clear();
+
+#endif
 
 #ifdef USE_ST7745
 	/////////////// ST7735 ADDED ///////////////
@@ -115,9 +125,9 @@ void LCD_PRINT_task(void* vParameters)
 		if(ADC_saved_measures[0] != ADC_actual_measures[0])
 		{
 			ADC_saved_measures[0] = ADC_actual_measures[0];
-			lcd_send_command(LCD_RETURN_HOME);
-
 			itoa(ADC_actual_measures[0], meas_str_value, 10);
+#ifdef USE_LCD_16x2
+			lcd_send_command(LCD_RETURN_HOME);
 
 			lcd_send_text("ADC_1: ");
 
@@ -131,6 +141,7 @@ void LCD_PRINT_task(void* vParameters)
 			{
 				lcd_send_data(0x20);
 			}
+#endif
 #ifdef USE_ST7745
 			/////////////// ST7735 ADDED ///////////////
 			ST7735_DrawString(0, 50, "ADC_1:", _used_font, ST7735_BLACK, bg);
@@ -157,7 +168,7 @@ void LCD_PRINT_task(void* vParameters)
 			ADC_saved_measures[1] = ADC_actual_measures[1];
 
 			itoa(ADC_actual_measures[1], meas_str_value, 10);
-
+#ifdef USE_LCD_16x2
 			lcd_send_command(SET_DDRAM_ADDR|LCD_LINE2);
 
 			lcd_send_text("ADC_2: ");
@@ -172,6 +183,7 @@ void LCD_PRINT_task(void* vParameters)
 			{
 				lcd_send_data(0x20);
 			}
+#endif
 #ifdef USE_ST7745
 			/////////////// ST7735 ADDED ///////////////
 			ST7735_DrawString(0, 50+_used_font.height, "ADC_2:", _used_font, ST7735_BLACK, bg);

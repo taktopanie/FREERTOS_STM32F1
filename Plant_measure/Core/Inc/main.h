@@ -35,9 +35,12 @@ extern "C" {
 #include "task.h"
 #include "timers.h"
 #include "semphr.h"
-#include "HD44780.h"
 #include "myTasks.h"
 #include "stdlib.h"
+
+#ifdef USE_LCD_16x2
+#include "HD44780.h"
+#endif
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
