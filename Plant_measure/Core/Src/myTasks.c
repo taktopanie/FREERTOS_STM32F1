@@ -71,11 +71,11 @@ void GROUND_MEASURE_CALCULATE_task(void* vParameters)
 		xTaskNotify(LCD_PRINT_hndl, (uint32_t)measure_addr, eSetValueWithOverwrite);
 
 		//WATERING IF REQUIRED
-		if(ADC_measures[0]>1800)
+		if(ADC_measures[0]>1600)
 		{
 			xTaskNotify(WATERING_hndl,0x1 ,eSetBits);
 		}
-		if(ADC_measures[1]>1800)
+		if(ADC_measures[1]>1600)
 		{
 			xTaskNotify(WATERING_hndl,0x2 ,eSetBits);
 		}

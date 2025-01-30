@@ -136,7 +136,9 @@ int main(void)
   {
 	  //TIMERS
 	  //PUMP_TIMER[i] = xTimerCreate("PUMP_TIM", pdMS_TO_TICKS(1000*60*60*3), pdFALSE, ( void * ) 0, TIMER_PUMP_EXPIRED);
-	  PUMP_TIMER[i] = xTimerCreate("PUMP_TIM", pdMS_TO_TICKS(1000*30), pdFALSE, ( void * ) 0, TIMER_PUMP_EXPIRED);
+
+	  //TIMER VALUE = 3 Hr
+	  PUMP_TIMER[i] = xTimerCreate("PUMP_TIM", pdMS_TO_TICKS(1000*60*60*3), pdFALSE, ( void * ) 0, TIMER_PUMP_EXPIRED);
 
 	  //SEMAPHORES
 	  PUMP_SEMAPHORE[i] = xSemaphoreCreateBinary();
