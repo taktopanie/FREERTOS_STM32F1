@@ -45,6 +45,8 @@ TaskHandle_t myTaskHandler;
 TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
+uint16_t PWM_VAL;
+uint8_t LED_polarity = 0;
 
 /* USER CODE END PV */
 
@@ -69,7 +71,6 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -97,6 +98,8 @@ int main(void)
 
   HAL_TIM_Base_Start_IT(&htim3);
   HAL_TIM_PWM_Start_IT(&htim3, TIM_CHANNEL_1);
+
+  PWM_VAL = htim3.Instance->CCR1;
 
   vTaskStartScheduler();
   /* USER CODE END 2 */
@@ -167,9 +170,9 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 8000;
+  htim3.Init.Prescaler = 800;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 1000;
+  htim3.Init.Period = 99;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
@@ -183,7 +186,7 @@ static void MX_TIM3_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 900;
+  sConfigOC.Pulse = 9;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
@@ -223,6 +226,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : PA0 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 6, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
 }
@@ -233,18 +246,38 @@ void TaksFunction(void* vParameters)
 	for(;;)
 	{
 		/*infinite loop */
-
-		vTaskDelay(200);
 	}
 }
 
-void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
+void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim)
 {
 
-	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
-	{
-	HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+	if (htim->Instance == TIM3) {
+		if(LED_polarity)
+		{
+			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, ENABLE);
+		}else{
+			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, DISABLE);
+		}
+	}
 
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+
+	TIM_TypeDef* my_TIM3 = (TIM_TypeDef*)0x40000400UL;
+
+	if(GPIO_Pin == GPIO_PIN_0)
+	{
+		my_TIM3->CCR1 = PWM_VAL;
+		PWM_VAL += 15;
+		if(PWM_VAL > my_TIM3->ARR )
+		{
+			PWM_VAL = 9;
+		}
+
+		my_TIM3->CCR1 = PWM_VAL;
 	}
 
 }
@@ -262,16 +295,18 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
-//	if (htim->Instance == TIM3) {
-//		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-//	}
+	if (htim->Instance == TIM3) {
+		if(LED_polarity)
+		{
+			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, DISABLE);
+		}else{
+			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, ENABLE);
+		}
+	}
 
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM1) {
     HAL_IncTick();
-  }
-  if (htim->Instance == TIM3) {
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, DISABLE);
   }
   /* USER CODE BEGIN Callback 1 */
 
