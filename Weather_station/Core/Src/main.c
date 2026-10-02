@@ -43,7 +43,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-TaskHandle_t test_task;
+TaskHandle_t main_task_hndl;
+TaskHandle_t measure_task_hndl;
+TaskHandle_t counting_task_hndl;
 BaseType_t Status;
 /* USER CODE END PV */
 
@@ -51,12 +53,21 @@ BaseType_t Status;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 /* USER CODE BEGIN PFP */
-void test_func(void* vParameters);
+void main_task(void* vParameters);
+void measure_task(void* vParameters);
+void counting_task(void* vParameters);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+struct result
+{
+	int n_of_res;
+	int res [20];
+};
+struct result res;
 
+int temp_avg_result;
 /* USER CODE END 0 */
 
 /**
@@ -89,7 +100,9 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
-  Status = xTaskCreate(test_func, "test_task", 100, 0, 1, &test_task);
+  Status = xTaskCreate(main_task, "main_task", 100, 0, 1, &main_task_hndl);
+  Status = xTaskCreate(measure_task, "measure_task", 100, 0, 1, &measure_task_hndl);
+  Status = xTaskCreate(counting_task, "counting_task", 100, 0, 1, &counting_task_hndl);
   configASSERT(Status == pdPASS);
 
   	 vTaskStartScheduler();
@@ -175,12 +188,79 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void test_func(void* vParameters)
+
+void main_task(void* vParameters)
+{
+	TickType_t xLastWakeTime;
+	xLastWakeTime = xTaskGetTickCount();
+	while(1)
+	{
+		xTaskNotify(measure_task_hndl,0,eNoAction);
+		xTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1000));
+	}
+}
+
+#define MAX_RES_NO	20
+#include <stdlib.h>
+int tmp_id;
+
+void measure_task(void* vParameters)
+{
+	res.n_of_res = 0;
+	uint8_t table_full = 0;
+
+	while(1)
+	{
+
+		xTaskNotifyWait(0,0,0,portMAX_DELAY);
+		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+
+		if(table_full)
+		{
+			//prepare the array
+			for(int i = 0; i < MAX_RES_NO - 1; i++)
+			{
+				res.res[i] = res.res[i+1];
+			}
+		}
+
+		//update the last result
+		//TODO: res.res[res.n_of_res] = ADC value
+		srand(HAL_GetTick());
+
+		//for testing +/- 15 degrees;
+		res.res[res.n_of_res] = (rand()%30)-15;
+
+		if(!table_full)
+		{
+			tmp_id++;
+			res.n_of_res++;
+		}
+
+		if(res.n_of_res == MAX_RES_NO)
+			{
+				table_full = 1;
+				res.n_of_res--;
+			}
+
+		xTaskNotify(counting_task_hndl,0,eNoAction);
+
+	}
+}
+
+void counting_task(void* vParameters)
 {
 	while(1)
 	{
-		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-		vTaskDelay(pdMS_TO_TICKS(1000));
+		xTaskNotifyWait(0,0,0,portMAX_DELAY);
+//		int temp = 0 ;
+//
+//		for (int i = 0; i <= res.n_of_res;i++)
+//		{
+//			temp += res.res;
+//		}
+//
+//		temp_avg_result = temp/res.n_of_res;
 
 	}
 }
